@@ -1,0 +1,14 @@
+/* JavaFX CSS - Leave this comment until you have at least create one rule which uses -fx-Property */
+
+.game-btn {
+	-fx-background-color:  #FAFAFB;
+	-fx-text-fill: #2d3436;
+}
+
+.game-btn:hover {
+	-fx-background-color:  #dfe6e9;
+}
+
+.game-btn:pressed {
+	-fx-background-color:  #B5C6CE;
+}
