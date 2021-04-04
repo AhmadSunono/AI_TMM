@@ -21,6 +21,11 @@ public class MainController implements Initializable {
 			this.col = col;
 		}
 
+		public GameCell() {
+			this.row = -1;
+			this.col = -1;
+		}
+
 		public int row;
 
 		public int getRow() {
@@ -71,45 +76,92 @@ public class MainController implements Initializable {
 
 	@FXML
 	private Button btn8;
-	
-    @FXML
-    private Button newGameBtn;
+
+	@FXML
+	private Button newGameBtn;
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		newGameHandler();
-	
+
 	}
 
 	private class CellClickHandler implements EventHandler<ActionEvent> {
 
 		@Override
 		public void handle(ActionEvent event) {
+			
+			if(gameOver) return;
+			
 			Button current = (Button) event.getTarget();
 			int row = ((GameCell) current.getUserData()).getRow();
 			int col = ((GameCell) current.getUserData()).getCol();
 
-			if (checkValidMove(row, col)) {
-				board[row][col] = player;
-				decrementPieces();
-				player *= -1;
+			boolean tempMoveFlag = tempMove.getRow() != -1 && tempMove.getCol() != -1;
 
+			// If there was a piece moving //
+			if (tempMoveFlag) {
+				board[row][col] = player;
 				current.setText(player == 1 ? "1" : "2");
 				current.setStyle(player == 1 ? player1Color : player2Color);
 
-				
-				if (checkWin()) {
-					Alert alert = new Alert(AlertType.INFORMATION);
-					alert.setHeaderText("Player " + (player == 1 ? "One" : "Two") + " Won!");
+				int tmpRow = tempMove.getRow();
+				int tmpCol = tempMove.getCol();
+
+				board[tmpRow][tmpCol] = 0;
+				buttons[tmpRow][tmpCol].setText("");
+
+				tempMove.setCol(-1);
+				tempMove.setRow(-1);
+
+				if (checkWin())
+					handleWin();
+
+				player *= -1;
+
+			}
+
+			// Normal Move //
+			else {
+				if (checkValidMove(row, col)) {
+
+					// If the player is moving his piece //
+					if (player == board[row][col]) {
+						current.setStyle(tempMoveColor);
+						tempMove.setRow(row);
+						tempMove.setCol(col);
+
+					} else {
+
+						board[row][col] = player;
+
+						current.setText(player == 1 ? "1" : "2");
+						current.setStyle(player == 1 ? player1Color : player2Color);
+						
+						if (checkWin())
+							handleWin();
+
+						decrementPieces();
+						player *= -1;
+					}
+
+				} else {
+					Alert alert = new Alert(AlertType.ERROR);
+					alert.setHeaderText("Invalid Move!");
 					alert.show();
 				}
-
-			} else {
-				Alert alert = new Alert(AlertType.ERROR);
-				alert.setHeaderText("Invalid Move!");
-				alert.show();
 			}
+			if (checkWin())
+				handleWin();
+
 		}
+	}
+
+	private void handleWin() {
+		Alert alert = new Alert(AlertType.INFORMATION);
+		alert.setHeaderText("Player " + (player == 1 ? "One" : "Two") + " Won!");
+		alert.show();
+		gameOver = true;
 	}
 
 	private void newGameHandler() {
@@ -127,12 +179,14 @@ public class MainController implements Initializable {
 		buttons[2][1] = btn7;
 		buttons[2][2] = btn8;
 		
+		gameOver = false;
+
 		newGameBtn.setOnAction(new EventHandler<ActionEvent>() {
-			
+
 			@Override
 			public void handle(ActionEvent event) {
 				newGameHandler();
-				
+
 			}
 		});
 
@@ -154,7 +208,6 @@ public class MainController implements Initializable {
 			}
 		}
 	}
-
 
 	private void decrementPieces() {
 		if (piecesLeft == 0)
@@ -191,10 +244,12 @@ public class MainController implements Initializable {
 
 	private Button[][] buttons;
 	private int[][] board = new int[3][3];
+	private GameCell tempMove = new GameCell();
+	private boolean gameOver = false;
 	private boolean[][] legalMove = new boolean[3][3];
 	private int piecesLeft = 6;
 	private int player = 1;
 	private String player1Color = "-fx-text-fill: green";
 	private String player2Color = "-fx-text-fill: red";
-
+	private String tempMoveColor = "-fx-text-fill: black";
 }
