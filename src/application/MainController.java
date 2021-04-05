@@ -90,9 +90,18 @@ public class MainController implements Initializable {
 
 		@Override
 		public void handle(ActionEvent event) {
-			
-			if(gameOver) return;
-			
+
+			if (gameOver) {
+
+				System.out.println(player);
+
+				Alert alert = new Alert(AlertType.INFORMATION);
+				alert.setHeaderText("Player " + (player == 1 ? "ONE" : "TWO") + " already won!");
+				alert.show();
+
+				return;
+			}
+
 			Button current = (Button) event.getTarget();
 			int row = ((GameCell) current.getUserData()).getRow();
 			int col = ((GameCell) current.getUserData()).getCol();
@@ -101,12 +110,25 @@ public class MainController implements Initializable {
 
 			// If there was a piece moving //
 			if (tempMoveFlag) {
-				board[row][col] = player;
-				current.setText(player == 1 ? "1" : "2");
-				current.setStyle(player == 1 ? player1Color : player2Color);
 
 				int tmpRow = tempMove.getRow();
 				int tmpCol = tempMove.getCol();
+
+				// If moving a piece in top of another piece
+				if (board[row][col] != 0 || diagonalMove(row, col, tmpRow, tmpCol)) {
+					Alert alert = new Alert(AlertType.ERROR);
+					alert.setHeaderText("Invalid Move!!");
+					alert.show();
+
+					tempMove.setCol(-1);
+					tempMove.setRow(-1);
+					buttons[tmpRow][tmpCol].setStyle(player == 1 ? player1Color : player2Color);
+					return;
+				}
+
+				board[row][col] = player;
+				current.setText(player == 1 ? "1" : "2");
+				current.setStyle(player == 1 ? player1Color : player2Color);
 
 				board[tmpRow][tmpCol] = 0;
 				buttons[tmpRow][tmpCol].setText("");
@@ -114,8 +136,15 @@ public class MainController implements Initializable {
 				tempMove.setCol(-1);
 				tempMove.setRow(-1);
 
-				if (checkWin())
+				if (checkWin()) {
 					handleWin();
+					return;
+				}
+
+				if (checkBlocked()) {
+					handleBlocked();
+					return;
+				}
 
 				player *= -1;
 
@@ -137,9 +166,16 @@ public class MainController implements Initializable {
 
 						current.setText(player == 1 ? "1" : "2");
 						current.setStyle(player == 1 ? player1Color : player2Color);
-						
-						if (checkWin())
+
+						if (checkWin()) {
 							handleWin();
+							return;
+						}
+
+						if (checkBlocked()) {
+							handleBlocked();
+							return;
+						}
 
 						decrementPieces();
 						player *= -1;
@@ -151,10 +187,25 @@ public class MainController implements Initializable {
 					alert.show();
 				}
 			}
-			if (checkWin())
+			if (checkWin()) {
 				handleWin();
-
+				return;
+			}
+			if (checkBlocked()) {
+				handleBlocked();
+				return;
+			}
 		}
+
+	}
+	
+	private void handleBlocked() {
+		handleWin();
+	}
+
+	private boolean diagonalMove(int row, int col, int tmpRow, int tmpCol) {
+
+		return !(row == tmpRow || col == tmpCol);
 	}
 
 	private void handleWin() {
@@ -178,7 +229,7 @@ public class MainController implements Initializable {
 		buttons[2][0] = btn6;
 		buttons[2][1] = btn7;
 		buttons[2][2] = btn8;
-		
+
 		gameOver = false;
 
 		newGameBtn.setOnAction(new EventHandler<ActionEvent>() {
@@ -230,6 +281,50 @@ public class MainController implements Initializable {
 				|| board[0][2] == player && board[1][2] == player && board[2][2] == player;
 	}
 
+	private boolean checkBlocked() {
+		
+		if(piecesLeft != 0) return false;
+
+		boolean result = false;
+
+		int otherPlayer = player * -1;
+
+		// Block by main diagonal
+		if (board[0][0] == player && board[1][1] == player && board[2][2] == player
+				&& ((board[0][1] == otherPlayer && board[0][2] == otherPlayer && board[1][2] == otherPlayer)
+						|| (board[1][0] == otherPlayer && board[2][0] == otherPlayer && board[2][0] == otherPlayer))) {
+			return true;
+		}
+
+		// Block by aux diagonal
+		if (board[0][2] == player && board[1][1] == player && board[2][0] == player
+				&& ((board[0][0] == otherPlayer && board[0][1] == otherPlayer && board[1][0] == otherPlayer)
+						|| (board[1][2] == otherPlayer && board[2][1] == otherPlayer && board[2][2] == otherPlayer))) {
+			return true;
+		}
+
+		player *= -1;
+		otherPlayer *= -1;
+
+		// Block by main diagonal
+		if (board[0][0] == player && board[1][1] == player && board[2][2] == player
+				&& ((board[0][1] == otherPlayer && board[0][2] == otherPlayer && board[1][2] == otherPlayer)
+						|| (board[1][0] == otherPlayer && board[2][0] == otherPlayer && board[2][0] == otherPlayer))) {
+			return true;
+		}
+
+		// Block by aux diagonal
+		if (board[0][2] == player && board[1][1] == player && board[2][0] == player
+				&& ((board[0][0] == otherPlayer && board[0][1] == otherPlayer && board[1][0] == otherPlayer)
+						|| (board[1][2] == otherPlayer && board[2][1] == otherPlayer && board[2][2] == otherPlayer))) {
+			return true;
+		}
+
+		player *= -1;
+
+		return result;
+	}
+
 	private boolean checkValidMove(int row, int col) {
 		int cellValue = board[row][col];
 		if (cellValue == 0 && piecesLeft == 0) {
@@ -239,16 +334,20 @@ public class MainController implements Initializable {
 			return false;
 		}
 
+		if (cellValue != 0 && piecesLeft != 0) {
+			return false;
+		}
+
 		return true;
 	}
 
-	private Button[][] buttons;
-	private int[][] board = new int[3][3];
-	private GameCell tempMove = new GameCell();
+	private Button[][] buttons; // 2D Array of Buttons
+	private int[][] board = new int[3][3]; // Board 2D Array OF [-1 , 0, 1]
+	private GameCell tempMove = new GameCell(); // When player want to move a piece
 	private boolean gameOver = false;
-	private boolean[][] legalMove = new boolean[3][3];
+//	private boolean[][] legalMove = new boolean[3][3];
 	private int piecesLeft = 6;
-	private int player = 1;
+	private int player = 1; // Current Player [-1, 1]
 	private String player1Color = "-fx-text-fill: green";
 	private String player2Color = "-fx-text-fill: red";
 	private String tempMoveColor = "-fx-text-fill: black";
