@@ -148,7 +148,7 @@ public class MainController implements Initializable {
                 }
 
                 player *= -1;
-                RuleExtractor();
+                RuleExtractor(board);
 
             }
 
@@ -181,7 +181,7 @@ public class MainController implements Initializable {
 
                         decrementPieces();
                         player *= -1;
-                        RuleExtractor();
+                        RuleExtractor(board);
 
                     }
 
@@ -331,8 +331,10 @@ public class MainController implements Initializable {
     }
 
     private boolean checkValidMove(int row, int col) {
-
+        if(row<0||row>2)return false;
+        if(col<0||col>2)return false;
         int cellValue = board[row][col];
+
         if (cellValue == 0 && piecesLeft == 0) {
             return false;
         }
@@ -375,10 +377,28 @@ tmp[k][r]=src[k][r];
         return tmp;
 
     }
+public boolean checkMoving(int row1,int col1, int row2,int col2){
+        if(row1<0||row1>2)return false;
+        if(row2<0||row2>2)return false;
+        if(col1<0||col1>2)return false;
+        if(col2<0||col2>2)return false;
+        if(board[row2][col2]!=0)return false;
+        return true;
 
 
+}
 
-    public void RuleExtractor() {
+public void printBoard(int board[][]){
+        for (int i=0;i<3;i++){
+            for(int j=0;j<3;j++){
+                System.out.print(board[i][j]+ " ");
+            }
+            System.out.println();
+        }
+    System.out.println();System.out.println();
+}
+    public ArrayList RuleExtractor(int board[][]) {
+        ArrayList<Integer> hue=new ArrayList<>();
         list = new ArrayList<int[][]>();
 int count=0;
         if (piecesLeft != 0) {
@@ -386,47 +406,83 @@ int count=0;
             for (int i = 0; i < 3; i++) {
                 for (int j = 0; j < 3; j++) {
                     if (checkValidMove(i, j)) {
-                        int tmpBoard[][]=copy(board);
+                        int tmpBoard[][] = copy(board);
                         tmpBoard[i][j] = AIPlayer;
 
                         list.add(copy(tmpBoard));
 
                         count++;
 
-                        tmpBoard[i][j]=0;
+                        tmpBoard[i][j] = 0;
                     }
-                    if(count==0)continue;
+                    if (count == 0) continue;
 
-                    int boardToPrint[][] =list.get(count-1);
-                    for (int k = 0; k < 3; k++) {
-                        for (int r= 0; r < 3; r++) {
+                    int boardToPrint[][] = list.get(count - 1);
 
-
-                            System.out.print(boardToPrint[k][r] + " ");
-                        }
-                        System.out.println();
-
-                    }
-                    System.out.println(calculateHueValue(boardToPrint));
-                    System.out.println();
-                    System.out.println();
-
-
-
+                    hue.add(calculateHueValue(boardToPrint));
 
                 }
             }
 
-
-
+            for (int i=0;i<hue.size();i++)System.out.print(hue.get(i)+"   ");
+            System.out.println();
         }
 
 
 
         } else {
+            if(player==AIPlayer){
+            int[][] tmpBorad = copy(board);
+
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    if (tmpBorad[i][j] == AIPlayer) {
+                        if (checkMoving(i, j, i + 1, j)) {
+                            tmpBorad[i][j] = 0;
+                            tmpBorad[i + 1][j] = AIPlayer;
+                            list.add(copy(tmpBorad));
+                            tmpBorad = copy(board);
+                        }
+                        if (checkMoving(i, j, i, j + 1)) {
+                            tmpBorad[i][j] = 0;
+                            tmpBorad[i][j + 1] = AIPlayer;
+                            list.add(copy(tmpBorad));
+                            tmpBorad = copy(board);
+
+                        }
+                        if (checkMoving(i, j, i - 1, j)) {
+                            tmpBorad[i][j] = 0;
+                            tmpBorad[i - 1][j] = AIPlayer;
+                            list.add(copy(tmpBorad));
+                            tmpBorad = copy(board);
+
+                        }
+                        if (checkMoving(i, j, i, j - 1)) {
+                            tmpBorad[i][j] = 0;
+                            tmpBorad[i][j - 1] = AIPlayer;
+                            list.add(copy(tmpBorad));
+                            tmpBorad = copy(board);
+
+                        }
+
+
+                    }
+                }
+            }
+
+// print options :
+            for (int i = 0; i < list.size(); i++) {
+                printBoard(list.get(i));
+                System.out.println(calculateHueValue(list.get(i)));
+            }
+
 
         }
 
+
+
+        }
+return list;
 
     }
     public int calculateHueValue(int [][]board){
@@ -460,6 +516,35 @@ int count=0;
 
         return sum;
     }
+
+    public int alphaBetaCode(int[][]board,int depth,int alpha,int beta,int player){
+        if(depth==0||calculateHueValue(board)==10000)return 10000;
+        if(player==AIPlayer){
+        int v=-100000;
+            ArrayList <int[][]>nodes=RuleExtractor(board);
+            for(int i=0;i<nodes.size();i++){
+            v=Math.max(v,alphaBetaCode(nodes.get(i),depth-1,alpha,beta,player*-1));
+            alpha=Math.max(alpha,v);
+            if(beta<=alpha)break;
+
+            }
+            return v;
+        }
+        else{
+            int v=100000;
+            ArrayList <int[][]>nodes=RuleExtractor(board);
+            for(int i=0;i<nodes.size();i++){
+                v=Math.min(v,alphaBetaCode(nodes.get(i),depth-1,alpha,beta,player*-1));
+                beta=Math.min(beta,v);
+                if(beta<=alpha)break;
+            }
+            return v;
+        }
+
+
+    }
+
+
 
 
 }
