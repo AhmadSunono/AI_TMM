@@ -1,6 +1,7 @@
-package application;
+package sample;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.ResourceBundle;
 
 import javafx.event.ActionEvent;
@@ -14,341 +15,451 @@ import javafx.scene.layout.GridPane;
 
 public class MainController implements Initializable {
 
-	private class GameCell {
+    private class GameCell {
 
-		public GameCell(int row, int col) {
-			this.row = row;
-			this.col = col;
-		}
+        public GameCell(int row, int col) {
+            this.row = row;
+            this.col = col;
+        }
 
-		public GameCell() {
-			this.row = -1;
-			this.col = -1;
-		}
+        public GameCell() {
+            this.row = -1;
+            this.col = -1;
+        }
 
-		public int row;
+        public int row;
 
-		public int getRow() {
-			return row;
-		}
+        public int getRow() {
+            return row;
+        }
 
-		public void setRow(int row) {
-			this.row = row;
-		}
+        public void setRow(int row) {
+            this.row = row;
+        }
 
-		public int getCol() {
-			return col;
-		}
+        public int getCol() {
+            return col;
+        }
 
-		public void setCol(int col) {
-			this.col = col;
-		}
+        public void setCol(int col) {
+            this.col = col;
+        }
 
-		public int col;
-	}
+        public int col;
+    }
 
-	@FXML
-	private GridPane grid;
+    @FXML
+    private GridPane grid;
 
-	@FXML
-	private Button btn0;
+    @FXML
+    private Button btn0;
 
-	@FXML
-	private Button btn1;
+    @FXML
+    private Button btn1;
 
-	@FXML
-	private Button btn2;
+    @FXML
+    private Button btn2;
 
-	@FXML
-	private Button btn3;
+    @FXML
+    private Button btn3;
 
-	@FXML
-	private Button btn4;
+    @FXML
+    private Button btn4;
 
-	@FXML
-	private Button btn5;
+    @FXML
+    private Button btn5;
 
-	@FXML
-	private Button btn6;
+    @FXML
+    private Button btn6;
 
-	@FXML
-	private Button btn7;
+    @FXML
+    private Button btn7;
 
-	@FXML
-	private Button btn8;
+    @FXML
+    private Button btn8;
 
-	@FXML
-	private Button newGameBtn;
+    @FXML
+    private Button newGameBtn;
 
-	@Override
-	public void initialize(URL location, ResourceBundle resources) {
-		newGameHandler();
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        newGameHandler();
 
-	}
+    }
 
-	private class CellClickHandler implements EventHandler<ActionEvent> {
+    private class CellClickHandler implements EventHandler<ActionEvent> {
 
-		@Override
-		public void handle(ActionEvent event) {
+        @Override
+        public void handle(ActionEvent event) {
 
-			if (gameOver) {
+            if (gameOver) {
 
-				System.out.println(player);
+                System.out.println(player);
 
-				Alert alert = new Alert(AlertType.INFORMATION);
-				alert.setHeaderText("Player " + (player == 1 ? "ONE" : "TWO") + " already won!");
-				alert.show();
+                Alert alert = new Alert(AlertType.INFORMATION);
+                alert.setHeaderText("Player " + (player == 1 ? "ONE" : "TWO") + " already won!");
+                alert.show();
 
-				return;
-			}
+                return;
+            }
 
-			Button current = (Button) event.getTarget();
-			int row = ((GameCell) current.getUserData()).getRow();
-			int col = ((GameCell) current.getUserData()).getCol();
+            Button current = (Button) event.getTarget();
+            int row = ((GameCell) current.getUserData()).getRow();
+            int col = ((GameCell) current.getUserData()).getCol();
 
-			boolean tempMoveFlag = tempMove.getRow() != -1 && tempMove.getCol() != -1;
+            boolean tempMoveFlag = tempMove.getRow() != -1 && tempMove.getCol() != -1;
 
-			// If there was a piece moving //
-			if (tempMoveFlag) {
+            // If there was a piece moving //
+            if (tempMoveFlag) {
 
-				int tmpRow = tempMove.getRow();
-				int tmpCol = tempMove.getCol();
+                int tmpRow = tempMove.getRow();
+                int tmpCol = tempMove.getCol();
 
-				// If moving a piece in top of another piece
-				if (board[row][col] != 0 || diagonalMove(row, col, tmpRow, tmpCol)) {
-					Alert alert = new Alert(AlertType.ERROR);
-					alert.setHeaderText("Invalid Move!!");
-					alert.show();
-
-					tempMove.setCol(-1);
-					tempMove.setRow(-1);
-					buttons[tmpRow][tmpCol].setStyle(player == 1 ? player1Color : player2Color);
-					return;
-				}
-
-				board[row][col] = player;
-				current.setText(player == 1 ? "1" : "2");
-				current.setStyle(player == 1 ? player1Color : player2Color);
-
-				board[tmpRow][tmpCol] = 0;
-				buttons[tmpRow][tmpCol].setText("");
-
-				tempMove.setCol(-1);
-				tempMove.setRow(-1);
-
-				if (checkWin()) {
-					handleWin();
-					return;
-				}
-
-				if (checkBlocked()) {
-					handleBlocked();
-					return;
-				}
-
-				player *= -1;
-
-			}
-
-			// Normal Move //
-			else {
-				if (checkValidMove(row, col)) {
-
-					// If the player is moving his piece //
-					if (player == board[row][col]) {
-						current.setStyle(tempMoveColor);
-						tempMove.setRow(row);
-						tempMove.setCol(col);
-
-					} else {
-
-						board[row][col] = player;
-
-						current.setText(player == 1 ? "1" : "2");
-						current.setStyle(player == 1 ? player1Color : player2Color);
-
-						if (checkWin()) {
-							handleWin();
-							return;
-						}
-
-						if (checkBlocked()) {
-							handleBlocked();
-							return;
-						}
-
-						decrementPieces();
-						player *= -1;
-					}
-
-				} else {
-					Alert alert = new Alert(AlertType.ERROR);
-					alert.setHeaderText("Invalid Move!");
-					alert.show();
-				}
-			}
-			if (checkWin()) {
-				handleWin();
-				return;
-			}
-			if (checkBlocked()) {
-				handleBlocked();
-				return;
-			}
-		}
-
-	}
-	
-	private void handleBlocked() {
-		handleWin();
-	}
-
-	private boolean diagonalMove(int row, int col, int tmpRow, int tmpCol) {
-
-		return !(row == tmpRow || col == tmpCol);
-	}
-
-	private void handleWin() {
-		Alert alert = new Alert(AlertType.INFORMATION);
-		alert.setHeaderText("Player " + (player == 1 ? "One" : "Two") + " Won!");
-		alert.show();
-		gameOver = true;
-	}
-
-	private void newGameHandler() {
-		board = new int[3][3];
-		piecesLeft = 6;
-		player = 1;
-		buttons = new Button[3][3];
-		buttons[0][0] = btn0;
-		buttons[0][1] = btn1;
-		buttons[0][2] = btn2;
-		buttons[1][0] = btn3;
-		buttons[1][1] = btn4;
-		buttons[1][2] = btn5;
-		buttons[2][0] = btn6;
-		buttons[2][1] = btn7;
-		buttons[2][2] = btn8;
-
-		gameOver = false;
-
-		newGameBtn.setOnAction(new EventHandler<ActionEvent>() {
-
-			@Override
-			public void handle(ActionEvent event) {
-				newGameHandler();
-
-			}
-		});
-
-		int count = 0;
-		for (int i = 0; i < 3; i++) {
-			for (int j = 0; j < 3; j++) {
-				Button current = buttons[i][j];
-				current.setId("" + count++);
-				current.setUserData(new GameCell(i, j));
-				current.setText("");
-
-				buttons[i][j].setOnAction(new CellClickHandler());
-			}
-		}
-
-		for (int i = 0; i < 3; i++) {
-			for (int j = 0; j < 3; j++) {
-				board[i][j] = 0;
-			}
-		}
-	}
-
-	private void decrementPieces() {
-		if (piecesLeft == 0)
-			return;
-		piecesLeft--;
-	}
-
-	private void incrementPieces() {
-		if (piecesLeft == 6)
-			return;
-		piecesLeft++;
-	}
-
-	private boolean checkWin() {
-		return board[0][0] == player && board[0][1] == player && board[0][2] == player
-				|| board[1][0] == player && board[1][1] == player && board[1][2] == player
-				|| board[2][0] == player && board[2][1] == player && board[2][2] == player
-				|| board[0][0] == player && board[1][0] == player && board[2][0] == player
-				|| board[0][1] == player && board[1][1] == player && board[2][1] == player
-				|| board[0][2] == player && board[1][2] == player && board[2][2] == player;
-	}
-
-	private boolean checkBlocked() {
-		
-		if(piecesLeft != 0) return false;
-
-		boolean result = false;
-
-		int otherPlayer = player * -1;
-
-		// Block by main diagonal
-		if (board[0][0] == player && board[1][1] == player && board[2][2] == player
-				&& ((board[0][1] == otherPlayer && board[0][2] == otherPlayer && board[1][2] == otherPlayer)
-						|| (board[1][0] == otherPlayer && board[2][0] == otherPlayer && board[2][0] == otherPlayer))) {
-			return true;
-		}
-
-		// Block by aux diagonal
-		if (board[0][2] == player && board[1][1] == player && board[2][0] == player
-				&& ((board[0][0] == otherPlayer && board[0][1] == otherPlayer && board[1][0] == otherPlayer)
-						|| (board[1][2] == otherPlayer && board[2][1] == otherPlayer && board[2][2] == otherPlayer))) {
-			return true;
-		}
-
-		player *= -1;
-		otherPlayer *= -1;
-
-		// Block by main diagonal
-		if (board[0][0] == player && board[1][1] == player && board[2][2] == player
-				&& ((board[0][1] == otherPlayer && board[0][2] == otherPlayer && board[1][2] == otherPlayer)
-						|| (board[1][0] == otherPlayer && board[2][0] == otherPlayer && board[2][0] == otherPlayer))) {
-			return true;
-		}
-
-		// Block by aux diagonal
-		if (board[0][2] == player && board[1][1] == player && board[2][0] == player
-				&& ((board[0][0] == otherPlayer && board[0][1] == otherPlayer && board[1][0] == otherPlayer)
-						|| (board[1][2] == otherPlayer && board[2][1] == otherPlayer && board[2][2] == otherPlayer))) {
-			return true;
-		}
-
-		player *= -1;
-
-		return result;
-	}
-
-	private boolean checkValidMove(int row, int col) {
-		int cellValue = board[row][col];
-		if (cellValue == 0 && piecesLeft == 0) {
-			return false;
-		}
-		if (cellValue == 1 && player == -1 || cellValue == -1 && player == 1) {
-			return false;
-		}
-
-		if (cellValue != 0 && piecesLeft != 0) {
-			return false;
-		}
-
-		return true;
-	}
-
-	private Button[][] buttons; // 2D Array of Buttons
-	private int[][] board = new int[3][3]; // Board 2D Array OF [-1 , 0, 1]
-	private GameCell tempMove = new GameCell(); // When player want to move a piece
-	private boolean gameOver = false;
-//	private boolean[][] legalMove = new boolean[3][3];
-	private int piecesLeft = 6;
-	private int player = 1; // Current Player [-1, 1]
-	private String player1Color = "-fx-text-fill: green";
-	private String player2Color = "-fx-text-fill: red";
-	private String tempMoveColor = "-fx-text-fill: black";
+                // If moving a piece in top of another piece
+                if (board[row][col] != 0 || diagonalMove(row, col, tmpRow, tmpCol)) {
+                    Alert alert = new Alert(AlertType.ERROR);
+                    alert.setHeaderText("Invalid Move!!");
+                    alert.show();
+
+                    tempMove.setCol(-1);
+                    tempMove.setRow(-1);
+                    buttons[tmpRow][tmpCol].setStyle(player == 1 ? player1Color : player2Color);
+                    return;
+                }
+
+                board[row][col] = player;
+                current.setText(player == 1 ? "1" : "2");
+                current.setStyle(player == 1 ? player1Color : player2Color);
+
+                board[tmpRow][tmpCol] = 0;
+                buttons[tmpRow][tmpCol].setText("");
+
+                tempMove.setCol(-1);
+                tempMove.setRow(-1);
+                System.out.println(calculateHueValue(board));
+                if (checkWin()) {
+                    handleWin();
+                    return;
+                }
+
+                if (checkBlocked()) {
+                    handleBlocked();
+                    return;
+                }
+
+                player *= -1;
+                RuleExtractor();
+
+            }
+
+            // Normal Move //
+            else {
+                if (checkValidMove(row, col)) {
+
+                    // If the player is moving his piece //
+                    if (player == board[row][col]) {
+                        current.setStyle(tempMoveColor);
+                        tempMove.setRow(row);
+                        tempMove.setCol(col);
+
+                    } else {
+
+                        board[row][col] = player;
+
+                        current.setText(player == 1 ? "1" : "2");
+                        current.setStyle(player == 1 ? player1Color : player2Color);
+                        System.out.println(calculateHueValue(board));
+                        if (checkWin()) {
+                            handleWin();
+                            return;
+                        }
+
+                        if (checkBlocked()) {
+                            handleBlocked();
+                            return;
+                        }
+
+                        decrementPieces();
+                        player *= -1;
+                        RuleExtractor();
+
+                    }
+
+                } else {
+                    Alert alert = new Alert(AlertType.ERROR);
+                    alert.setHeaderText("Invalid Move!");
+                    alert.show();
+                }
+            }
+
+            if (checkWin()) {
+                handleWin();
+                return;
+            }
+            if (checkBlocked()) {
+                handleBlocked();
+                return;
+            }
+        }
+
+    }
+
+    private void handleBlocked() {
+        handleWin();
+    }
+
+    private boolean diagonalMove(int row, int col, int tmpRow, int tmpCol) {
+
+        return !(row == tmpRow || col == tmpCol);
+    }
+
+    private void handleWin() {
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setHeaderText("Player " + (player == 1 ? "One" : "Two") + " Won!");
+        alert.show();
+        gameOver = true;
+    }
+
+    private void newGameHandler() {
+        board = new int[3][3];
+        piecesLeft = 6;
+        player = 1;
+        buttons = new Button[3][3];
+        buttons[0][0] = btn0;
+        buttons[0][1] = btn1;
+        buttons[0][2] = btn2;
+        buttons[1][0] = btn3;
+        buttons[1][1] = btn4;
+        buttons[1][2] = btn5;
+        buttons[2][0] = btn6;
+        buttons[2][1] = btn7;
+        buttons[2][2] = btn8;
+
+        gameOver = false;
+
+        newGameBtn.setOnAction(new EventHandler<ActionEvent>() {
+
+            @Override
+            public void handle(ActionEvent event) {
+                newGameHandler();
+
+            }
+        });
+
+        int count = 0;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                Button current = buttons[i][j];
+                current.setId("" + count++);
+                current.setUserData(new GameCell(i, j));
+                current.setText("");
+
+                buttons[i][j].setOnAction(new CellClickHandler());
+            }
+        }
+
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                board[i][j] = 0;
+            }
+        }
+    }
+
+    private void decrementPieces() {
+        if (piecesLeft == 0)
+            return;
+        piecesLeft--;
+    }
+
+    private void incrementPieces() {
+        if (piecesLeft == 6)
+            return;
+        piecesLeft++;
+    }
+
+    private boolean checkWin() {
+        return board[0][0] == player && board[0][1] == player && board[0][2] == player
+                || board[1][0] == player && board[1][1] == player && board[1][2] == player
+                || board[2][0] == player && board[2][1] == player && board[2][2] == player
+                || board[0][0] == player && board[1][0] == player && board[2][0] == player
+                || board[0][1] == player && board[1][1] == player && board[2][1] == player
+                || board[0][2] == player && board[1][2] == player && board[2][2] == player;
+    }
+
+    private boolean checkBlocked() {
+
+        if (piecesLeft != 0) return false;
+
+        boolean result = false;
+
+        int otherPlayer = player * -1;
+
+        // Block by main diagonal
+        if (board[0][0] == player && board[1][1] == player && board[2][2] == player
+                && ((board[0][1] == otherPlayer && board[0][2] == otherPlayer && board[1][2] == otherPlayer)
+                || (board[1][0] == otherPlayer && board[2][0] == otherPlayer && board[2][0] == otherPlayer))) {
+            return true;
+        }
+
+        // Block by aux diagonal
+        if (board[0][2] == player && board[1][1] == player && board[2][0] == player
+                && ((board[0][0] == otherPlayer && board[0][1] == otherPlayer && board[1][0] == otherPlayer)
+                || (board[1][2] == otherPlayer && board[2][1] == otherPlayer && board[2][2] == otherPlayer))) {
+            return true;
+        }
+
+        player *= -1;
+        otherPlayer *= -1;
+
+        // Block by main diagonal
+        if (board[0][0] == player && board[1][1] == player && board[2][2] == player
+                && ((board[0][1] == otherPlayer && board[0][2] == otherPlayer && board[1][2] == otherPlayer)
+                || (board[1][0] == otherPlayer && board[2][0] == otherPlayer && board[2][0] == otherPlayer))) {
+            return true;
+        }
+
+        // Block by aux diagonal
+        if (board[0][2] == player && board[1][1] == player && board[2][0] == player
+                && ((board[0][0] == otherPlayer && board[0][1] == otherPlayer && board[1][0] == otherPlayer)
+                || (board[1][2] == otherPlayer && board[2][1] == otherPlayer && board[2][2] == otherPlayer))) {
+            return true;
+        }
+
+        player *= -1;
+
+        return result;
+    }
+
+    private boolean checkValidMove(int row, int col) {
+
+        int cellValue = board[row][col];
+        if (cellValue == 0 && piecesLeft == 0) {
+            return false;
+        }
+        if (cellValue == 1 && player == -1 || cellValue == -1 && player == 1) {
+            return false;
+        }
+
+        if (cellValue != 0 && piecesLeft != 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private Button[][] buttons; // 2D Array of Buttons
+    private int[][] board = new int[3][3]; // Board 2D Array OF [-1 , 0, 1]
+    private GameCell tempMove = new GameCell(); // When player want to move a piece
+    private boolean gameOver = false;
+    //	private boolean[][] legalMove = new boolean[3][3];
+    private int piecesLeft = 6;
+    private int player = 1; // Current Player [-1, 1]
+    private int AIPlayer=-1;
+    private String player1Color = "-fx-text-fill: green";
+    private String player2Color = "-fx-text-fill: red";
+    private String tempMoveColor = "-fx-text-fill: black";
+    private ArrayList<int[][]> list;
+
+
+    public int [][]copy(int[][]src){
+        int tmp[][]=new int[3][3];
+        for (int k = 0; k < 3; k++) {
+            for (int r= 0; r < 3; r++) {
+
+tmp[k][r]=src[k][r];
+
+            }
+
+
+        }
+        return tmp;
+
+    }
+
+
+
+    public void RuleExtractor() {
+        list = new ArrayList<int[][]>();
+int count=0;
+        if (piecesLeft != 0) {
+            if(player==AIPlayer){
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    if (checkValidMove(i, j)) {
+                        int tmpBoard[][]=copy(board);
+                        tmpBoard[i][j] = AIPlayer;
+
+                        list.add(copy(tmpBoard));
+
+                        count++;
+
+                        tmpBoard[i][j]=0;
+                    }
+                    if(count==0)continue;
+
+                    int boardToPrint[][] =list.get(count-1);
+                    for (int k = 0; k < 3; k++) {
+                        for (int r= 0; r < 3; r++) {
+
+
+                            System.out.print(boardToPrint[k][r] + " ");
+                        }
+                        System.out.println();
+
+                    }
+                    System.out.println(calculateHueValue(boardToPrint));
+                    System.out.println();
+                    System.out.println();
+
+
+
+
+                }
+            }
+
+
+
+        }
+
+
+
+        } else {
+
+        }
+
+
+    }
+    public int calculateHueValue(int [][]board){
+        if(checkBlocked())return 0;
+        if(board[0][0] == AIPlayer && board[0][1] == AIPlayer && board[0][2] == AIPlayer
+                || board[1][0] == AIPlayer && board[1][1] == AIPlayer && board[1][2] == AIPlayer
+                || board[2][0] == AIPlayer && board[2][1] == AIPlayer && board[2][2] == AIPlayer
+                || board[0][0] == AIPlayer && board[1][0] == AIPlayer && board[2][0] == AIPlayer
+                || board[0][1] == AIPlayer && board[1][1] == AIPlayer && board[2][1] == AIPlayer
+                || board[0][2] == AIPlayer && board[1][2] == AIPlayer && board[2][2] == AIPlayer)
+            return 10000;
+        int sum=0;
+        if(board[0][0]==AIPlayer&&board[0][1]==AIPlayer)sum+=100;
+        if(board[0][1]==AIPlayer&&board[0][2]==AIPlayer)sum+=100;
+        if(board[1][0]==AIPlayer&&board[1][1]==AIPlayer)sum+=100;
+        if(board[1][1]==AIPlayer&&board[1][2]==AIPlayer)sum+=100;
+        if(board[2][0]==AIPlayer&&board[2][1]==AIPlayer)sum+=100;
+        if(board[2][1]==AIPlayer&&board[2][2]==AIPlayer)sum+=100;
+
+
+
+        if(board[0][0]==AIPlayer&&board[1][0]==AIPlayer)sum+=100;
+        if(board[1][0]==AIPlayer&&board[2][0]==AIPlayer)sum+=100;
+        if(board[0][1]==AIPlayer&&board[1][1]==AIPlayer)sum+=100;
+        if(board[1][1]==AIPlayer&&board[2][1]==AIPlayer)sum+=100;
+        if(board[0][2]==AIPlayer&&board[1][2]==AIPlayer)sum+=100;
+        if(board[1][2]==AIPlayer&&board[2][2]==AIPlayer)sum+=100;
+
+
+
+
+        return sum;
+    }
+
+
 }
