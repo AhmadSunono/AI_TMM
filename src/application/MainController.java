@@ -398,7 +398,6 @@ public class MainController implements Initializable {
 			}
 			System.out.println();
 		}
-//		System.out.println();
 	}
 
 	public ArrayList<int[][]> RuleExtractor(int board[][], int player) {
@@ -495,7 +494,7 @@ public class MainController implements Initializable {
 			else
 				return -10000;
 		}
-		
+
 		if (board[0][0] == AIPlayer && board[0][1] == AIPlayer && board[0][2] == AIPlayer
 				|| board[1][0] == AIPlayer && board[1][1] == AIPlayer && board[1][2] == AIPlayer
 				|| board[2][0] == AIPlayer && board[2][1] == AIPlayer && board[2][2] == AIPlayer
@@ -544,37 +543,53 @@ public class MainController implements Initializable {
 
 	public int[][] alphaBetaCode(int[][] board, int depth, int alpha, int beta, int player) {
 		if (depth == 0 || calculateHueValue(board, player) == 10000) {
-
 //			return 10000;
 			return board;
 		}
+
+		int[][] bestResult = null;
+
 		// Maximizing (APLPHA)
 		if (player == AIPlayer) {
 			int v = -100000;
 			ArrayList<int[][]> nodes = RuleExtractor(board, player);
 			int i;
 			for (i = 0; i < nodes.size(); i++) {
-				v = Math.max(v,
-						calculateHueValue(alphaBetaCode(nodes.get(i), depth - 1, alpha, beta, player * -1), player));
+				int[][] temp = alphaBetaCode(nodes.get(i), depth - 1, alpha, beta, player * -1);
+				int hueValue = calculateHueValue(temp, player);
+				if (hueValue > v) {
+					v = hueValue;
+					bestResult = temp;
+				}
+//				v = Math.max(v,
+//						calculateHueValue(alphaBetaCode(nodes.get(i), depth - 1, alpha, beta, player * -1), player));
 				alpha = Math.max(alpha, v);
 				if (beta <= alpha)
 					break;
 
 			}
-			return nodes.get(i == nodes.size() ? nodes.size() - 1 : i);
+			return bestResult;
+//			return nodes.get(i == nodes.size() ? nodes.size() - 1 : i);
 			// Minimizing (BETA)
 		} else {
 			int v = 100000;
 			ArrayList<int[][]> nodes = RuleExtractor(board, player);
 			int i;
 			for (i = 0; i < nodes.size(); i++) {
-				v = Math.min(v,
-						calculateHueValue(alphaBetaCode(nodes.get(i), depth - 1, alpha, beta, player * -1), player));
+				int[][] temp = alphaBetaCode(nodes.get(i), depth - 1, alpha, beta, player * -1);
+				int hueValue = calculateHueValue(temp, player);
+				if (hueValue < v) {
+					v = hueValue;
+					bestResult = temp;
+				}
+//				v = Math.min(v,
+//						calculateHueValue(alphaBetaCode(nodes.get(i), depth - 1, alpha, beta, player * -1), player));
 				beta = Math.min(beta, v);
 				if (beta <= alpha)
 					break;
 			}
-			return nodes.get(i == nodes.size() ? nodes.size() - 1 : i);
+			return bestResult;
+//			return nodes.get(i == nodes.size() ? nodes.size() - 1 : i);
 		}
 
 	}
@@ -618,6 +633,6 @@ public class MainController implements Initializable {
 	private String player2Color = "-fx-text-fill: red";
 	private String tempMoveColor = "-fx-text-fill: black";
 	private ArrayList<int[][]> list;
-	private final int depth = 2;
+	private final int depth = 5;
 
 }
