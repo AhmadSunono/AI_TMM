@@ -385,6 +385,7 @@ public class MainController implements Initializable {
 			return false;
 		if (board[row2][col2] != 0)
 			return false;
+		if(board[row1][col1]!=player)return false;
 		return true;
 
 	}
@@ -423,13 +424,13 @@ public class MainController implements Initializable {
 				}
 			}
 
-//			for (int i = 0; i < list.size(); i++) {
-//				printBoard(list.get(i));
-//				System.out.println(calculateHueValue(list.get(i), player));
-//				System.out.println("----");
-//			}
-//			System.out.println("#########");
-//			}
+			for (int i = 0; i < list.size(); i++) {
+				printBoard(list.get(i));
+				System.out.println(calculateHueValue(list.get(i), player));
+				System.out.println("----");
+			}
+			System.out.println("#########");
+			//}
 
 		} else {
 			if (player == AIPlayer) {
