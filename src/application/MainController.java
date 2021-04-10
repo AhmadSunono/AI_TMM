@@ -304,14 +304,14 @@ public class MainController implements Initializable {
 		int otherPlayer = player * -1;
 
 		// Block by main diagonal
-		if (board[0][0] == player && board[1][1] == player && board[2][2] == player
+		if ((board[0][0] == player && board[1][1] == player && board[2][2] == player)
 				&& ((board[0][1] == otherPlayer && board[0][2] == otherPlayer && board[1][2] == otherPlayer)
-						|| (board[1][0] == otherPlayer && board[2][0] == otherPlayer && board[2][0] == otherPlayer))) {
+						|| (board[1][0] == otherPlayer && board[2][0] == otherPlayer && board[2][1] == otherPlayer))) {
 			return true;
 		}
 
 		// Block by aux diagonal
-		if (board[0][2] == player && board[1][1] == player && board[2][0] == player
+		if ((board[0][2] == player && board[1][1] == player && board[2][0] == player)
 				&& ((board[0][0] == otherPlayer && board[0][1] == otherPlayer && board[1][0] == otherPlayer)
 						|| (board[1][2] == otherPlayer && board[2][1] == otherPlayer && board[2][2] == otherPlayer))) {
 			return true;
@@ -385,7 +385,8 @@ public class MainController implements Initializable {
 			return false;
 		if (board[row2][col2] != 0)
 			return false;
-		if(board[row1][col1]!=player)return false;
+		if (board[row1][col1] != player)
+			return false;
 		return true;
 
 	}
@@ -397,10 +398,10 @@ public class MainController implements Initializable {
 			}
 			System.out.println();
 		}
-		System.out.println();
+//		System.out.println();
 	}
 
-	public ArrayList RuleExtractor(int board[][], int player) {
+	public ArrayList<int[][]> RuleExtractor(int board[][], int player) {
 		list = new ArrayList<int[][]>();
 		int count = 0;
 		if (piecesLeft != 0) {
@@ -420,7 +421,7 @@ public class MainController implements Initializable {
 					if (count == 0)
 						continue;
 
-					int boardToPrint[][] = list.get(count - 1);
+//					int boardToPrint[][] = list.get(count - 1);
 				}
 			}
 
@@ -429,16 +430,16 @@ public class MainController implements Initializable {
 				System.out.println(calculateHueValue(list.get(i), player));
 				System.out.println("----");
 			}
-			System.out.println("#########");
-			//}
+//			System.out.println("#########");
+			// }
 
 		} else {
-			if (player == AIPlayer) {
-				int[][] tmpBorad = copy(board);
+//			if (player == AIPlayer) {
+			int[][] tmpBorad = copy(board);
 
-				for (int i = 0; i < 3; i++) {
-					for (int j = 0; j < 3; j++) {
-//						if (tmpBorad[i][j] == player) {
+			for (int i = 0; i < 3; i++) {
+				for (int j = 0; j < 3; j++) {
+					if (tmpBorad[i][j] == player) {
 						if (checkMoving(i, j, i + 1, j)) {
 							tmpBorad[i][j] = 0;
 							tmpBorad[i + 1][j] = player;
@@ -467,17 +468,17 @@ public class MainController implements Initializable {
 
 						}
 
-//						}
 					}
 				}
+			}
 
 // print options :
-//				for (int i = 0; i < list.size(); i++) {
-//					printBoard(list.get(i));
-//					System.out.println(calculateHueValue(list.get(i)));
-//				}
-
+			for (int i = 0; i < list.size(); i++) {
+				printBoard(list.get(i));
+				System.out.println(calculateHueValue(list.get(i), player));
+				System.out.println("----");
 			}
+//			}
 
 		}
 		return list;
@@ -485,8 +486,16 @@ public class MainController implements Initializable {
 	}
 
 	public int calculateHueValue(int[][] board, int AIPlayer) {
-		if (checkBlocked())
-			return 0;
+
+		int otherPlayer = AIPlayer * -1;
+
+		if (checkBlocked()) {
+			if (board[1][1] == AIPlayer)
+				return 10000;
+			else
+				return -10000;
+		}
+		
 		if (board[0][0] == AIPlayer && board[0][1] == AIPlayer && board[0][2] == AIPlayer
 				|| board[1][0] == AIPlayer && board[1][1] == AIPlayer && board[1][2] == AIPlayer
 				|| board[2][0] == AIPlayer && board[2][1] == AIPlayer && board[2][2] == AIPlayer
@@ -494,6 +503,15 @@ public class MainController implements Initializable {
 				|| board[0][1] == AIPlayer && board[1][1] == AIPlayer && board[2][1] == AIPlayer
 				|| board[0][2] == AIPlayer && board[1][2] == AIPlayer && board[2][2] == AIPlayer)
 			return 10000;
+
+		if (board[0][0] == otherPlayer && board[0][1] == otherPlayer && board[0][2] == otherPlayer
+				|| board[1][0] == otherPlayer && board[1][1] == otherPlayer && board[1][2] == otherPlayer
+				|| board[2][0] == otherPlayer && board[2][1] == otherPlayer && board[2][2] == otherPlayer
+				|| board[0][0] == otherPlayer && board[1][0] == otherPlayer && board[2][0] == otherPlayer
+				|| board[0][1] == otherPlayer && board[1][1] == otherPlayer && board[2][1] == otherPlayer
+				|| board[0][2] == otherPlayer && board[1][2] == otherPlayer && board[2][2] == otherPlayer)
+			return -10000;
+
 		int sum = 0;
 		if (board[0][0] == AIPlayer && board[0][1] == AIPlayer)
 			sum += 100;
@@ -533,7 +551,7 @@ public class MainController implements Initializable {
 		// Maximizing (APLPHA)
 		if (player == AIPlayer) {
 			int v = -100000;
-			ArrayList<int[][]> nodes = RuleExtractor(board, AIPlayer);
+			ArrayList<int[][]> nodes = RuleExtractor(board, player);
 			int i;
 			for (i = 0; i < nodes.size(); i++) {
 				v = Math.max(v,
@@ -547,7 +565,7 @@ public class MainController implements Initializable {
 			// Minimizing (BETA)
 		} else {
 			int v = 100000;
-			ArrayList<int[][]> nodes = RuleExtractor(board, AIPlayer);
+			ArrayList<int[][]> nodes = RuleExtractor(board, player);
 			int i;
 			for (i = 0; i < nodes.size(); i++) {
 				v = Math.min(v,
@@ -561,28 +579,38 @@ public class MainController implements Initializable {
 
 	}
 
-	public void reflectBoard(int[][] newBoard) {		
+	public void reflectBoard(int[][] newBoard) {
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
 				int currentPlayer = newBoard[i][j];
 				Button currentButton = buttons[i][j];
 				board[i][j] = currentPlayer;
 				currentButton.setStyle(currentPlayer == 1 ? player1Color : player2Color);
-				currentButton.setText(currentPlayer == 1 ? "1" : currentPlayer == -1? "2": "" );
+				currentButton.setText(currentPlayer == 1 ? "1" : currentPlayer == -1 ? "2" : "");
 			}
 		}
+
+		if (checkWin()) {
+			handleWin();
+			return;
+		}
+
+		if (checkBlocked()) {
+			handleBlocked();
+			return;
+		}
+
 		tempMove.setCol(-1);
 		tempMove.setRow(-1);
 		player *= -1;
 		decrementPieces();
-		printBoard(board);
+//		printBoard(board);
 	}
 
 	private Button[][] buttons; // 2D Array of Buttons
 	private int[][] board = new int[3][3]; // Board 2D Array OF [-1 , 0, 1]
 	private GameCell tempMove = new GameCell(); // When player want to move a piece
 	private boolean gameOver = false;
-	// private boolean[][] legalMove = new boolean[3][3];
 	private int piecesLeft = 6;
 	private int player = 1; // Current Player [-1, 1]
 	private final int AIPlayer = -1;
@@ -590,7 +618,6 @@ public class MainController implements Initializable {
 	private String player2Color = "-fx-text-fill: red";
 	private String tempMoveColor = "-fx-text-fill: black";
 	private ArrayList<int[][]> list;
-	private ArrayList<int[][]> currentBestMove = new ArrayList<int[][]>();
-	private final int depth = 5;
+	private final int depth = 2;
 
 }
